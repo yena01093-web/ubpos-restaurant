@@ -52,6 +52,27 @@ export function computeAvailableSlots(
   });
 }
 
+const WEEKDAY_LABEL: Record<Weekday, string> = { sun: '일', mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토' };
+const WEEK_ORDER: Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+/** 홈페이지 영업시간 안내용 — 같은 시간대인 연속된 요일을 묶어서 보여준다. */
+export function summarizeWeeklyHours(weeklyHours: Record<Weekday, DayHours>): { label: string; hours: string }[] {
+  const groups: { days: Weekday[]; hours: DayHours }[] = [];
+  for (const day of WEEK_ORDER) {
+    const hours = weeklyHours[day];
+    const last = groups[groups.length - 1];
+    if (last && last.hours.closed === hours.closed && last.hours.open === hours.open && last.hours.close === hours.close) {
+      last.days.push(day);
+    } else {
+      groups.push({ days: [day], hours });
+    }
+  }
+  return groups.map(g => ({
+    label: g.days.length > 1 ? `${WEEKDAY_LABEL[g.days[0]]}~${WEEKDAY_LABEL[g.days[g.days.length - 1]]}` : WEEKDAY_LABEL[g.days[0]],
+    hours: g.hours.closed ? '휴무' : `${g.hours.open} – ${g.hours.close}`,
+  }));
+}
+
 export const DEFAULT_AVAILABILITY: AvailabilitySettings = {
   weeklyHours: {
     sun: { closed: true, open: '11:00', close: '21:00' },
