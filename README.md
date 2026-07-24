@@ -82,6 +82,10 @@ src/
   types/index.ts                공용 타입
 ```
 
+## 주의: firebase-admin 버전 고정
+
+`firebase-admin`은 `^13.10.0`으로 고정되어 있습니다. `14.x`부터는 내부적으로 `jwks-rsa@4.x`(→ ESM 전용 `jose@6.x`)를 물고 오는데, 이걸 Vercel의 Next.js 서버리스 런타임이 번들링하면서 `require()`가 실패해 **모든 API route가 500(ERR_REQUIRE_ESM)** 으로 죽습니다 (로컬 `next dev`/`next build`에서는 증상이 안 나타나서 배포하고 나서야 발견하기 쉬운 문제입니다). `npm update`나 의존성 업그레이드 시 `firebase-admin`을 14 이상으로 올리지 마세요 — 꼭 올려야 한다면 배포 후 API route를 실제로 호출해보고 확인하세요.
+
 ## 향후 확장 아이디어
 
 - 예약 취소 시 고객에게 알림톡/SMS 발송 (현재는 관리자가 목록에서 상태만 변경)
