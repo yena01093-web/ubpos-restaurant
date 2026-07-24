@@ -70,6 +70,7 @@ export default function ReservationsPanel() {
                 <th className="py-2 pr-4 font-medium">이름</th>
                 <th className="py-2 pr-4 font-medium">연락처</th>
                 <th className="py-2 pr-4 font-medium">인원</th>
+                <th className="py-2 pr-4 font-medium">메뉴 / 요청사항</th>
                 <th className="py-2 pr-4 font-medium">상태</th>
                 <th className="py-2 font-medium">처리</th>
               </tr>
@@ -82,6 +83,12 @@ export default function ReservationsPanel() {
                   <td className="py-2 pr-4">{r.name}</td>
                   <td className="py-2 pr-4">{r.phone}</td>
                   <td className="py-2 pr-4">{r.partySize}명</td>
+                  <td className="py-2 pr-4 max-w-[220px]">
+                    <div className="text-xs text-stone-600">
+                      {r.menuSelections?.map(s => `${s.menuName} ${s.quantity}`).join(', ') || '-'}
+                    </div>
+                    {r.specialRequests && <div className="mt-0.5 text-xs text-amber-600">{r.specialRequests}</div>}
+                  </td>
                   <td className="py-2 pr-4">
                     <span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLOR[r.status]}`}>{STATUS_LABEL[r.status]}</span>
                   </td>

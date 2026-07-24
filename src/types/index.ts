@@ -1,5 +1,21 @@
 export type ReservationStatus = 'confirmed' | 'cancelled' | 'completed';
 
+export interface Menu {
+  id: string;
+  name: string;
+  description: string;
+  price: number | null;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+/** 예약에 담기는 메뉴 한 줄. 이름은 예약 시점 스냅샷이라 이후 메뉴가 바뀌어도 안 바뀐다. */
+export interface MenuSelection {
+  menuId: string;
+  menuName: string;
+  quantity: number;
+}
+
 export interface Reservation {
   id: string;
   name: string;
@@ -7,6 +23,8 @@ export interface Reservation {
   date: string; // 'YYYY-MM-DD'
   time: string; // 'HH:mm'
   partySize: number;
+  menuSelections: MenuSelection[];
+  specialRequests: string | null;
   status: ReservationStatus;
   createdAt: string; // ISO
 }
@@ -37,6 +55,8 @@ export interface ReservationDraft {
   date: string; // 'YYYY-MM-DD'
   time: string; // 'HH:mm'
   partySize: number;
+  menuSelections: MenuSelection[];
+  specialRequests: string;
   name: string;
   phoneDisplay: string; // 화면 표시용 '010-1234-5678'
   phoneE164: string; // Firebase Phone Auth용 '+8210...'

@@ -49,7 +49,14 @@ export default function PhoneVerifyStep({
       const res = await fetch('/api/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ date: draft.date, time: draft.time, partySize: draft.partySize, name: draft.name }),
+        body: JSON.stringify({
+          date: draft.date,
+          time: draft.time,
+          partySize: draft.partySize,
+          name: draft.name,
+          menuSelections: draft.menuSelections.map(({ menuId, quantity }) => ({ menuId, quantity })),
+          specialRequests: draft.specialRequests || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? '예약에 실패했습니다.');
@@ -69,6 +76,10 @@ export default function PhoneVerifyStep({
         <p className="mt-1">
           {draft.name} · {draft.phoneDisplay}
         </p>
+        <p className="mt-2 text-stone-500">
+          {draft.menuSelections.map(s => `${s.menuName} ${s.quantity}인분`).join(', ')}
+        </p>
+        {draft.specialRequests && <p className="mt-1 text-stone-500">요청사항: {draft.specialRequests}</p>}
       </div>
 
       {phase !== 'sent' && phase !== 'verifying' ? (

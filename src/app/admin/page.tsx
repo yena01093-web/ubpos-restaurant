@@ -5,8 +5,9 @@ import { getAdminAuth } from '@/lib/firebase/client';
 import LoginForm from '@/components/admin/LoginForm';
 import ReservationsPanel from '@/components/admin/ReservationsPanel';
 import AvailabilityPanel from '@/components/admin/AvailabilityPanel';
+import MenusPanel from '@/components/admin/MenusPanel';
 
-type Tab = 'reservations' | 'availability';
+type Tab = 'reservations' | 'availability' | 'menus';
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -45,10 +46,15 @@ export default function AdminPage() {
           <TabButton active={tab === 'availability'} onClick={() => setTab('availability')}>
             예약 가능 시간대 설정
           </TabButton>
+          <TabButton active={tab === 'menus'} onClick={() => setTab('menus')}>
+            메뉴 관리
+          </TabButton>
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200 sm:p-8">
-          {tab === 'reservations' ? <ReservationsPanel /> : <AvailabilityPanel />}
+          {tab === 'reservations' && <ReservationsPanel />}
+          {tab === 'availability' && <AvailabilityPanel />}
+          {tab === 'menus' && <MenusPanel />}
         </div>
       </div>
     </main>

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { formatPhoneInput, toE164Korea } from '@/lib/phone';
-import type { ReservationDraft, TimeSlot } from '@/types';
+import type { Menu, ReservationDraft, TimeSlot } from '@/types';
 
 function todayStr(): string {
   const d = new Date();
@@ -22,9 +22,42 @@ export default function DetailsStep({ onNext }: { onNext: (draft: ReservationDra
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [partySize, setPartySize] = useState(2);
+  const [menus, setMenus] = useState<Menu[] | null>(null);
+  const [menusError, setMenusError] = useState<string | null>(null);
+  const [menuQty, setMenuQty] = useState<Record<string, number>>({});
+  const [specialRequests, setSpecialRequests] = useState('');
   const [name, setName] = useState('');
   const [phoneDisplay, setPhoneDisplay] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/menus');
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) throw new Error(data.error ?? '메뉴를 불러오지 못했습니다.');
+        setMenus(data.menus);
+      } catch (err) {
+        if (!cancelled) setMenusError(err instanceof Error ? err.message : '메뉴를 불러오지 못했습니다.');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const menuTotal = Object.values(menuQty).reduce((sum, n) => sum + n, 0);
+
+  const setQty = (menuId: string, qty: number) => {
+    setMenuQty(prev => {
+      const next = { ...prev };
+      if (qty <= 0) delete next[menuId];
+      else next[menuId] = qty;
+      return next;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -59,11 +92,25 @@ export default function DetailsStep({ onNext }: { onNext: (draft: ReservationDra
     setError(null);
 
     if (!time) return setError('예약 시간을 선택해주세요.');
+    if (menuTotal !== partySize) return setError('메뉴 선택 인원이 예약 인원과 일치해야 합니다.');
     if (name.trim().length === 0) return setError('예약자 이름을 입력해주세요.');
     const phoneE164 = toE164Korea(phoneDisplay);
     if (!phoneE164) return setError('휴대폰 번호를 다시 확인해주세요.');
 
-    onNext({ date, time, partySize, name: name.trim(), phoneDisplay, phoneE164 });
+    const menuSelections = (menus ?? [])
+      .filter(m => (menuQty[m.id] ?? 0) > 0)
+      .map(m => ({ menuId: m.id, menuName: m.name, quantity: menuQty[m.id] }));
+
+    onNext({
+      date,
+      time,
+      partySize,
+      menuSelections,
+      specialRequests: specialRequests.trim(),
+      name: name.trim(),
+      phoneDisplay,
+      phoneE164,
+    });
   };
 
   return (
@@ -143,6 +190,58 @@ export default function DetailsStep({ onNext }: { onNext: (draft: ReservationDra
       </div>
 
       <div>
+        <div className="mb-2 flex items-baseline justify-between">
+          <label className="text-sm font-medium text-stone-700">메뉴 선택</label>
+          <span className={['text-xs', menuTotal === partySize ? 'text-emerald-600' : 'text-stone-400'].join(' ')}>
+            선택 인원 {menuTotal}/{partySize}명
+          </span>
+        </div>
+
+        {menusError && <p className="text-sm text-red-600">{menusError}</p>}
+        {!menusError && menus === null && <p className="text-sm text-stone-400">메뉴를 불러오는 중…</p>}
+        {!menusError && menus?.length === 0 && <p className="text-sm text-stone-400">현재 선택 가능한 메뉴가 없습니다.</p>}
+
+        {!menusError && menus && menus.length > 0 && (
+          <div className="space-y-2">
+            {menus.map(menu => {
+              const qty = menuQty[menu.id] ?? 0;
+              return (
+                <div key={menu.id} className="rounded-xl border border-stone-300 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-stone-900">{menu.name}</div>
+                      {menu.description && <p className="mt-1 text-xs leading-relaxed text-stone-500">{menu.description}</p>}
+                      {menu.price !== null && (
+                        <div className="mt-1 text-xs font-medium text-stone-600">{menu.price.toLocaleString('ko-KR')}원</div>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setQty(menu.id, qty - 1)}
+                        disabled={qty <= 0}
+                        className="h-8 w-8 rounded-full border border-stone-300 text-stone-700 hover:border-stone-500 disabled:opacity-30"
+                      >
+                        −
+                      </button>
+                      <span className="w-6 text-center text-sm font-medium text-stone-900">{qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(menu.id, qty + 1)}
+                        className="h-8 w-8 rounded-full border border-stone-300 text-stone-700 hover:border-stone-500"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div>
         <label className="mb-2 block text-sm font-medium text-stone-700">예약자 이름</label>
         <input
           type="text"
@@ -165,6 +264,18 @@ export default function DetailsStep({ onNext }: { onNext: (draft: ReservationDra
           className="w-full rounded-xl border border-stone-300 px-4 py-3 text-stone-900 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500"
         />
         <p className="mt-1 text-xs text-stone-400">다음 단계에서 이 번호로 인증번호를 보내드려요.</p>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">특별 요청사항 (선택)</label>
+        <textarea
+          value={specialRequests}
+          onChange={e => setSpecialRequests(e.target.value)}
+          maxLength={200}
+          rows={3}
+          placeholder="알레르기, 매운 음식 조절 등 요청사항을 적어주세요."
+          className="w-full resize-none rounded-xl border border-stone-300 px-4 py-3 text-stone-900 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500"
+        />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

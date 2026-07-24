@@ -23,6 +23,8 @@ export default function ConfirmStep({ draft, onRestart }: { draft: ReservationDr
         <Row label="시간" value={draft.time} />
         <Row label="인원" value={`${draft.partySize}명`} />
         <Row label="예약자" value={`${draft.name} (${draft.phoneDisplay})`} />
+        <Row label="메뉴" value={draft.menuSelections.map(s => `${s.menuName} ${s.quantity}인분`).join(', ')} />
+        {draft.specialRequests && <Row label="요청사항" value={draft.specialRequests} />}
       </div>
 
       <button

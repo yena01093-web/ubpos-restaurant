@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
         date: data.date as string,
         time: data.time as string,
         partySize: data.partySize as number,
+        menuSelections: data.menuSelections ?? [],
+        specialRequests: data.specialRequests ?? null,
         status: data.status as string,
         createdAt: data.createdAt?.toDate?.().toISOString() ?? null,
       };
