@@ -47,6 +47,13 @@ export default function DetailsStep({ onNext }: { onNext: (draft: ReservationDra
     };
   }, [date]);
 
+  // 인원 수를 늘렸을 때 이미 골라둔 시간대의 남은 좌석이 부족해지면 선택을 풀어준다.
+  useEffect(() => {
+    if (!time || !slots) return;
+    const selected = slots.find(s => s.time === time);
+    if (!selected || selected.remaining < partySize) setTime(null);
+  }, [partySize, slots, time]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -82,24 +89,33 @@ export default function DetailsStep({ onNext }: { onNext: (draft: ReservationDra
         )}
         {!slotsError && slots && slots.length > 0 && (
           <div className="grid grid-cols-3 gap-2">
-            {slots.map(slot => (
-              <button
-                key={slot.time}
-                type="button"
-                disabled={slot.full}
-                onClick={() => setTime(slot.time)}
-                className={[
-                  'rounded-lg border px-3 py-2 text-sm transition',
-                  slot.full
-                    ? 'cursor-not-allowed border-stone-200 text-stone-300 line-through'
-                    : time === slot.time
-                      ? 'border-stone-800 bg-stone-800 text-white'
-                      : 'border-stone-300 text-stone-700 hover:border-stone-500',
-                ].join(' ')}
-              >
-                {slot.time}
-              </button>
-            ))}
+            {slots.map(slot => {
+              const notEnoughSeats = slot.remaining < partySize;
+              const disabled = slot.full || notEnoughSeats;
+              return (
+                <button
+                  key={slot.time}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => setTime(slot.time)}
+                  className={[
+                    'flex flex-col items-center rounded-lg border px-3 py-2 text-sm transition',
+                    disabled
+                      ? 'cursor-not-allowed border-stone-200 text-stone-300 line-through'
+                      : time === slot.time
+                        ? 'border-stone-800 bg-stone-800 text-white'
+                        : 'border-stone-300 text-stone-700 hover:border-stone-500',
+                  ].join(' ')}
+                >
+                  {slot.time}
+                  {!slot.full && slot.remaining <= 20 && (
+                    <span className={['text-[10px]', time === slot.time ? 'text-stone-300' : 'text-stone-400'].join(' ')}>
+                      {slot.remaining}석 남음
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

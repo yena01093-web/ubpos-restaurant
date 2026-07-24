@@ -102,15 +102,16 @@ export default function AvailabilityPanel() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-stone-700">시간대당 최대 예약 건수</label>
+          <label className="mb-1 block text-sm font-medium text-stone-700">시간대당 총 좌석 수</label>
           <input
             type="number"
             min={1}
-            max={999}
-            value={settings.maxReservationsPerSlot}
-            onChange={e => setSettings({ ...settings, maxReservationsPerSlot: Number(e.target.value) })}
+            max={9999}
+            value={settings.maxGuestsPerSlot}
+            onChange={e => setSettings({ ...settings, maxGuestsPerSlot: Number(e.target.value) })}
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
           />
+          <p className="mt-1 text-xs text-stone-400">해당 시간대 예약 인원 합계가 이 좌석 수를 넘으면 마감 처리됩니다.</p>
         </div>
       </div>
 

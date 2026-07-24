@@ -22,14 +22,14 @@ export type Weekday = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
 export interface AvailabilitySettings {
   weeklyHours: Record<Weekday, DayHours>;
   slotIntervalMinutes: number;
-  maxReservationsPerSlot: number;
+  maxGuestsPerSlot: number; // 시간대별 총 좌석 수 (예약 인원 합계 기준)
   closedDates: string[]; // 'YYYY-MM-DD'
 }
 
 export interface TimeSlot {
   time: string; // 'HH:mm'
-  remaining: number;
-  full: boolean;
+  remaining: number; // 남은 좌석 수
+  full: boolean; // 좌석이 하나도 안 남았는지
 }
 
 /** 예약 위저드가 단계 사이에서 들고 다니는 입력값. */

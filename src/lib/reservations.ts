@@ -39,15 +39,15 @@ export function generateSlots(settings: AvailabilitySettings, dateStr: string): 
   return slots;
 }
 
-/** 슬롯 목록에 시간별 예약 건수를 반영해 잔여석을 계산한다. */
+/** 슬롯 목록에 시간별 예약 인원 합계를 반영해 잔여 좌석 수를 계산한다. */
 export function computeAvailableSlots(
   settings: AvailabilitySettings,
   dateStr: string,
-  bookedCountByTime: Record<string, number>
+  bookedGuestsByTime: Record<string, number>
 ): TimeSlot[] {
   return generateSlots(settings, dateStr).map(time => {
-    const booked = bookedCountByTime[time] ?? 0;
-    const remaining = Math.max(0, settings.maxReservationsPerSlot - booked);
+    const booked = bookedGuestsByTime[time] ?? 0;
+    const remaining = Math.max(0, settings.maxGuestsPerSlot - booked);
     return { time, remaining, full: remaining <= 0 };
   });
 }
@@ -63,6 +63,6 @@ export const DEFAULT_AVAILABILITY: AvailabilitySettings = {
     sat: { closed: false, open: '11:00', close: '21:30' },
   },
   slotIntervalMinutes: 60,
-  maxReservationsPerSlot: 4,
+  maxGuestsPerSlot: 100,
   closedDates: [],
 };

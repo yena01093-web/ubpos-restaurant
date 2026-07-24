@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
           .where('time', '==', time)
           .where('status', '==', 'confirmed')
       );
-      if (existingSnap.size >= settings.maxReservationsPerSlot) {
+      const bookedGuests = existingSnap.docs.reduce((sum, doc) => sum + (doc.get('partySize') as number), 0);
+      if (bookedGuests + partySize > settings.maxGuestsPerSlot) {
         throw new Error('SLOT_FULL');
       }
       const ref = db.collection('restaurant_reservations').doc();

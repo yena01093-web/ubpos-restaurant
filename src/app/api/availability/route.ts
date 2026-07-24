@@ -20,12 +20,13 @@ export async function GET(req: NextRequest) {
     .where('status', '==', 'confirmed')
     .get();
 
-  const bookedCountByTime: Record<string, number> = {};
+  const bookedGuestsByTime: Record<string, number> = {};
   reservedSnap.forEach(doc => {
     const time = doc.get('time') as string;
-    bookedCountByTime[time] = (bookedCountByTime[time] ?? 0) + 1;
+    const partySize = doc.get('partySize') as number;
+    bookedGuestsByTime[time] = (bookedGuestsByTime[time] ?? 0) + partySize;
   });
 
-  const slots = computeAvailableSlots(settings, date, bookedCountByTime);
+  const slots = computeAvailableSlots(settings, date, bookedGuestsByTime);
   return NextResponse.json({ date, slots });
 }

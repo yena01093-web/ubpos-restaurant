@@ -34,7 +34,7 @@ function isValidSettings(body: unknown): body is AvailabilitySettings {
   if (!body || typeof body !== 'object') return false;
   const b = body as Record<string, unknown>;
   if (typeof b.slotIntervalMinutes !== 'number' || b.slotIntervalMinutes < 5 || b.slotIntervalMinutes > 240) return false;
-  if (typeof b.maxReservationsPerSlot !== 'number' || b.maxReservationsPerSlot < 1 || b.maxReservationsPerSlot > 999) return false;
+  if (typeof b.maxGuestsPerSlot !== 'number' || b.maxGuestsPerSlot < 1 || b.maxGuestsPerSlot > 9999) return false;
   if (!Array.isArray(b.closedDates) || !b.closedDates.every(d => typeof d === 'string')) return false;
 
   const wh = b.weeklyHours as Record<string, unknown> | undefined;
